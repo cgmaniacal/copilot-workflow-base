@@ -1,247 +1,73 @@
-# claude-workflow-base
+# ai-workflow-overlay
 
-A boilerplate for building React applications with Claude Code. Supports both frontend-only and full-stack configurations.
+ai-workflow-overlay is a platform-agnostic AI development workflow that installs into any existing project. It brings structured research, planning, and implementation phases — along with auto-documented conventions, an ADR framework, CI quality gates, implementation guards, and a Claude memory system — without requiring you to start from a template or change your tech stack.
 
-## Prerequisites
+## Quick Start
 
-- **Node.js 22** (LTS) — install via [nvm](https://github.com/nvm-sh/nvm): `nvm install 22`
-- **npm** (ships with Node)
-- **Docker Desktop** (full stack only) — provides PostgreSQL via Docker Compose, no local database installation needed
-
-## Getting Started
-
-1. Clone this repo into a new project directory:
+1. Clone this repo:
 
 ```bash
-git clone https://github.com/cgmaniacal/claude-workflow-base.git my-project
-cd my-project
+git clone https://github.com/cgmaniacal/ai-workflow-overlay.git
+cd ai-workflow-overlay
 ```
 
-2. Run the setup command:
+2. Run the onboarding script against your project:
 
 ```bash
-npm run setup
+node scripts/onboard.mjs --target /path/to/your/project
 ```
 
-This will prompt you to select either:
-- **Frontend only** — React SPA with Vite, TailwindCSS, and SASS. No backend or database.
-- **Full stack** — React SPA + Express API + shared types package + Prisma (PostgreSQL).
+3. Open your project in your AI agent and run the analysis prompt that the onboarding script prints at the end.
 
-3. Install the Superpowers plugin in Claude Code (required for the phased workflow):
+## What You Get
 
-```
-/plugin marketplace add obra/superpowers-marketplace
-/plugin install superpowers@superpowers-marketplace
-```
+- Structured four-phase workflow (Research, Plan, Implement, Validate)
+- Auto-documented conventions generated from your actual codebase
+- ADR framework for recording architectural decisions
+- CI quality gates (lint, test, build) via GitHub Actions
+- Implementation guards (blast radius checks, proactive checkpoints)
+- Claude memory system for persistent context across sessions
+- Agent configuration tailored to your chosen AI assistant
 
-4. Start developing: `npm run dev`
+## Supported Stacks
 
-**What setup does:**
-- Scaffolds the full project structure (apps, packages, configs)
-- Detects the directory name and uses it as the project name
-- Generates CI pipeline (`.github/workflows/ci.yml`)
-- Generates `docker-compose.yml` with PostgreSQL (full stack only)
-- Installs all dependencies
-- Initializes the Claude memory tree
-- Removes backend-specific docs if frontend-only
-- Cleans up the setup scripts (self-deletes `scripts/`)
-- Commits the scaffolded project
+- React / TypeScript
+- WordPress (PHP)
+- .NET / C#
+- Python
+- Generic (any project not matching the above)
 
-## Tech Stack
+## Supported Agents
 
-| Layer | Technology | Required |
-|-------|-----------|----------|
-| Monorepo | Turborepo, npm workspaces | Always |
-| Frontend | React, TypeScript, Vite, TailwindCSS, SASS, Zustand | Always |
-| Backend | Express, TypeScript | Full stack only |
-| Database | PostgreSQL, Prisma ORM | Full stack only |
-| Local DB | Docker Compose (PostgreSQL container) | Full stack only |
-| Testing | Vitest | Always |
-| Linting | ESLint (flat config) + Prettier | Always |
-| CI | GitHub Actions | Always |
-| Dependency updates | Renovate | Always |
-| Runtime | Node 22 (LTS) | Always |
+- GitHub Copilot (primary)
+- Claude Code
+- Cursor
 
-## Architecture
-
-### Frontend Only
+## Project Structure
 
 ```
-apps/
-  web/              # React SPA (Vite)
-agent_docs/          # Claude task-specific instructions
-docs/
-  research/          # Research and brainstorming docs
-  plans/             # Implementation plans
-  decisions/         # Architectural Decision Records
+core/          # Universal workflow docs and template agent_docs
+adapters/      # Agent-specific config generators
+  copilot/     # GitHub Copilot instructions generator
+  claude/      # Claude Code hooks, agents, commands, settings
+  cursor/      # Cursor rules generator
+stacks/        # Stack detection logic and documentation templates
+  react-ts/
+  wordpress/
+  dotnet/
+  python/
+  generic/
+scripts/       # Onboarding script and CI templates
 ```
 
-A single React application built with Vite. State managed with Zustand. Styled with TailwindCSS utilities and SASS modules. Suitable for static sites, landing pages, or SPAs that consume external APIs.
+## How to Add a New Stack
 
-### Full Stack
+1. Create a directory under `stacks/` named after the stack (e.g., `stacks/ruby/`)
+2. Add `detect.md` — a description of how to detect this stack (file patterns, config files, package names)
+3. Add `templates.md` — stack-specific agent doc content to merge into the project's `agent_docs/`
 
-```
-apps/
-  web/              # React SPA (Vite)
-  api/              # Express API server
-packages/
-  shared/           # Shared types, utils, constants
-agent_docs/          # Claude task-specific instructions
-docs/
-  research/          # Research and brainstorming docs
-  plans/             # Implementation plans
-  decisions/         # Architectural Decision Records
-```
+## How to Add a New Agent Adapter
 
-```
-┌─────────────┐     HTTP/JSON     ┌─────────────┐     Prisma     ┌────────────┐
-│   apps/web  │  ──────────────>  │   apps/api  │  ──────────>   │ PostgreSQL │
-│  React SPA  │  <──────────────  │   Express   │  <──────────   │            │
-└─────────────┘                   └─────────────┘                └────────────┘
-       │                                │
-       └──────── both import ───────────┘
-                      │
-              ┌───────────────┐
-              │packages/shared│
-              │  types, utils │
-              └───────────────┘
-```
-
-The API follows a layered pattern: **Routes -> Services -> Prisma**. Shared types and utilities live in `packages/shared` so both apps stay in sync. See `agent_docs/service_architecture.md` for details.
-
-## Development
-
-### Full Stack: Start the Database
-
-Full-stack projects use Docker Compose for PostgreSQL. Start the database before running the app:
-
-```bash
-docker compose up -d db    # Start PostgreSQL in background
-npm run dev                # Start API + web via Turbo
-```
-
-To stop the database: `docker compose down` (data persists in a named volume). To reset: `docker compose down -v`.
-
-### Commands
-
-```bash
-npm run dev          # Start all apps
-npm run build        # Build all apps
-npm run lint         # Lint + format check
-npm run test         # Run all tests
-npm run test:watch   # Watch mode
-```
-
-### Git Conventions
-
-- **Branch per feature:** `feature/<short-description>` (e.g., `feature/add-login-form`)
-- **Commit format:** [Conventional Commits](https://www.conventionalcommits.org/) — `type(scope): description`
-- **Commit timing:** Implement and Validate phases only
-
-See `CLAUDE.md` for the full Git workflow.
-
-### Code Conventions
-
-- TypeScript strict mode, no `any`
-- Small files (<200 lines), one component/module per file
-- Colocated tests (`foo.ts` -> `foo.test.ts`)
-- Named exports over default exports
-- Path aliases: `@web/`, `@api/`, `@shared/`
-
-See `agent_docs/code_conventions.md` for the complete guide.
-
-### Frontend Quality Standards
-
-All user-facing features target:
-- **Accessibility:** WCAG 2.1 AA compliance (semantic HTML, keyboard navigation, screen reader support, 4.5:1 contrast)
-- **Responsive design:** Mobile-first, works from 320px to 1920px+
-- **Performance:** Lighthouse 90+ across all categories
-- **SEO:** Unique titles, meta descriptions, semantic headings (public-facing sites only)
-
-See `agent_docs/frontend_quality.md` for the full checklist.
-
-### Backend and Database Standards (Full Stack)
-
-All API and database code follows these conventions:
-- **Security:** Helmet, CORS, rate limiting, request size limits, and request correlation IDs configured by default. Secrets in `.env` only, validated at startup.
-- **Authentication:** Default-deny middleware pattern — all routes protected unless explicitly whitelisted. JWT access/refresh tokens, bcrypt password hashing. See `agent_docs/authentication.md`.
-- **Service layer:** Stateless, no `req`/`res` access, throw domain errors (not HTTP errors). One service per resource.
-- **Input validation:** All request bodies validated with Zod at the route handler level before reaching services. Strings trimmed and bounded.
-- **Error handling:** Errors classified (validation, domain, auth, internal) with standard codes. Internal details never leaked to clients. Correlation IDs in all error responses.
-- **Database:** Docker Compose for local PostgreSQL. Native JSONB, arrays, and UUID types. Explicit cascade behavior on every relation. N+1 avoidance via `include`/`select`. Transactions for multi-step writes. Slow query detection. Soft deletes for audit-sensitive data.
-
-See `agent_docs/service_architecture.md`, `agent_docs/database_schema.md`, `agent_docs/service_communication_patterns.md`, and `agent_docs/authentication.md` for details.
-
-## CI/CD
-
-### GitHub Actions
-
-The CI pipeline (`.github/workflows/ci.yml`, generated by setup) runs three parallel jobs on every push to `main` and every pull request:
-
-1. **Lint** — ESLint + Prettier check
-2. **Test** — Vitest test suite
-3. **Build** — Production build
-
-### Dependency Updates
-
-[Renovate](https://docs.renovatebot.com/) is configured in `renovate.json` to keep dependencies current:
-
-| Update type | Behavior |
-|-------------|----------|
-| Patch | Grouped, auto-merged if CI passes |
-| Minor | Grouped, manual review |
-| Major | Individual PRs, manual review |
-| Dev dependencies | Grouped, auto-merged if CI passes |
-
-Related packages (React, Prisma, linting tools) are updated together to prevent version mismatches. See `agent_docs/dependency_updates.md` for the review process.
-
-## Claude Code Workflow
-
-This project is designed for development with [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and the [Superpowers](https://github.com/obra/superpowers) plugin. See Getting Started step 3 for plugin installation.
-
-### Workflow Phases
-
-| Phase | Superpowers skill | Output |
-|-------|------------------|--------|
-| Research | `brainstorming` | Design doc in `docs/research/`, ADR in `docs/decisions/` |
-| Plan | `writing-plans` | Implementation plan in `docs/plans/` |
-| Implement | `executing-plans`, `test-driven-development` | Working code with tests |
-| Validate | `verification-before-completion`, `finishing-a-development-branch` | Passing lint/tests/build, merge or PR |
-
-### Architectural Decision Records
-
-Significant architectural decisions are recorded in `docs/decisions/` using a lightweight ADR format. ADRs capture the *why* behind decisions so future developers (and Claude sessions) can evaluate whether a decision still holds. See `docs/decisions/000-template.md` for the format.
-
-### Persistent Memory
-
-Claude maintains a hierarchical memory tree at `.claude/memory/` that persists across sessions. Context is managed automatically via hooks — no manual setup required.
-
-**Automatic behaviors:**
-
-| Event | What happens |
-|-------|-------------|
-| Session starts | Loads last session summary, preferences, recent decisions, active plans |
-| Every ~15 messages | Nudges `/remember` to capture key context before it falls out of the window |
-| Before compaction | Saves structured state (active plan progress, session notes) |
-| After compaction | Re-injects saved state so work can continue seamlessly |
-| Each session | Updates a project file index in the background |
-
-**Commands:**
-
-| Command | Description |
-|---------|-------------|
-| `/remember` | Extract and save decisions, patterns, bugs, and preferences from the conversation |
-| `/recall [topic]` | Search the memory tree for context on a specific topic |
-| `/memory-status` | Show stored memory count by domain |
-
-Memory is organized into domains: `decisions/`, `patterns/`, `bugs/`, `preferences/`, `context/`, `sessions/`, `research/`, `plans/`, and `files/`. Each domain contains markdown files with a standard format. See `agent_docs/memory_system.md` for the full architecture.
-
-### Additional Resources
-
-| Resource | Description |
-|----------|-------------|
-| `agent_docs/` | Task-specific instructions loaded by Claude on demand (progressive disclosure) |
-| `CLAUDE.md` | Developer guide — tech stack, workflow, git conventions, commands, coding standards |
-| `.claude/settings.json` | Pre-approved commands and hook configuration |
-| `renovate.json` | Dependency update automation configuration |
-| `docs/decisions/` | Architectural Decision Records |
+1. Create a directory under `adapters/` named after the agent (e.g., `adapters/gemini/`)
+2. Add `generate.mjs` — an ESM script that reads the detected stack and project info and writes the agent's config files to the target project
+3. The script receives `{ projectRoot, stack, projectName }` as arguments and is responsible for writing all agent-specific files
