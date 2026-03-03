@@ -33,3 +33,6 @@ coverage/
 
 # Claude local settings (personal overrides)
 .claude/settings.local.json
+
+# Worktrees
+.worktrees/
