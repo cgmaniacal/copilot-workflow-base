@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ai-workflow-overlay onboarding script
+ * copilot-workflow-base onboarding script
  *
  * Usage:
  *   node scripts/onboard.mjs
@@ -270,7 +270,7 @@ Run this prompt in your AI agent to populate the agent_docs templates.
 
 ## Instructions
 
-You are onboarding an existing project into the ai-workflow-overlay system.
+You are onboarding an existing project into the copilot-workflow-base system.
 Your job is to analyze this project and fill in the {{TODO}} placeholders
 in the agent_docs/ templates.
 
@@ -340,7 +340,7 @@ function summary(targetDir, created, detectedStacks) {
 
 async function main() {
   const targetDir = parseTarget();
-  console.log(`\nai-workflow-overlay onboarding`);
+  console.log(`\ncopilot-workflow-base onboarding`);
   console.log(`Target: ${targetDir}`);
 
   const rl = makeRl();

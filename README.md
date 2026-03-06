@@ -1,14 +1,14 @@
-# ai-workflow-overlay
+# copilot-workflow-base
 
-ai-workflow-overlay is a platform-agnostic AI development workflow that installs into any existing project. It brings structured research, planning, and implementation phases — along with auto-documented conventions, an ADR framework, CI quality gates, implementation guards, and a Claude memory system — without requiring you to start from a template or change your tech stack.
+copilot-workflow-base is a platform-agnostic AI development workflow that installs into any existing project. It brings structured research, planning, and implementation phases — along with auto-documented conventions, an ADR framework, CI quality gates, implementation guards, and a Claude memory system — without requiring you to start from a template or change your tech stack.
 
 ## Quick Start
 
 1. Clone this repo:
 
 ```bash
-git clone https://github.com/cgmaniacal/ai-workflow-overlay.git
-cd ai-workflow-overlay
+git clone https://github.com/cgmaniacal/copilot-workflow-base.git
+cd copilot-workflow-base
 ```
 
 2. Run the onboarding script against your project:

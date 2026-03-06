@@ -1,6 +1,6 @@
 # Claude Code Adapter
 
-Generates a complete Claude Code configuration for projects onboarded with ai-workflow-overlay.
+Generates a complete Claude Code configuration for projects onboarded with copilot-workflow-base.
 
 ## What this adapter generates
 
