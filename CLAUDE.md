@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This is the ai-workflow-overlay repository — a platform-agnostic AI development workflow.
+This is the copilot-workflow-base repository — a platform-agnostic AI development workflow.
 
 ## Structure
 

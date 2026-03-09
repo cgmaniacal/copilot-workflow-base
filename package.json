@@ -1,5 +1,5 @@
 {
-  "name": "ai-workflow-overlay",
+  "name": "copilot-workflow-base",
   "version": "1.0.0",
   "description": "Platform-agnostic AI development workflow for existing projects",
   "type": "module",
