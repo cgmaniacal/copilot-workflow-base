@@ -82,7 +82,7 @@ function preflight(targetDir) {
 
 // ─── Phase 2: Stack detection ──────────────────────────────────────────────
 
-function detectStacks(targetDir) {
+export function detectStacks(targetDir) {
   const pkg = readPkg(targetDir);
   const ls  = (d) => existsSync(d) ? readdirSync(d) : [];
   const detected = [];
@@ -384,4 +384,8 @@ async function main() {
   }
 }
 
-main();
+// Only run main() when executed directly, not when imported
+const isMainScript = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMainScript) {
+  main();
+}
