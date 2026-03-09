@@ -301,6 +301,20 @@ ${stackGuidance || '_No stack-specific guidance available._'}
 - Don't suggest changes unless there's a genuine security risk
 - After populating all templates, report which files were updated and flag
   any {{TODO}} items you could not resolve due to missing information
+
+## Final Step: Regenerate Instruction Files
+
+After populating all agent_docs/ templates, regenerate the instruction files
+(CLAUDE.md, copilot-instructions.md, .cursorrules) so they reflect the
+populated content:
+
+\`\`\`bash
+node scripts/regenerate.mjs --target .
+\`\`\`
+
+If the overlay repository is not locally available, you can manually update
+the instruction files by copying the relevant sections from the populated
+agent_docs/ files.
 `;
 
   const promptPath = join(agentDocsDest, '.onboarding-prompt.md');
@@ -333,7 +347,8 @@ function summary(targetDir, created, detectedStacks) {
   console.log('    1. Open your AI agent (Copilot, Claude, etc.)');
   console.log('    2. Run the analysis prompt at agent_docs/.onboarding-prompt.md');
   console.log('    3. Review the populated agent_docs/');
-  console.log('    4. Commit the overlay files\n');
+  console.log('    4. Regenerate instruction files: node scripts/regenerate.mjs --target .');
+  console.log('    5. Commit the overlay files\n');
 }
 
 // ─── Main ──────────────────────────────────────────────────────────────────
