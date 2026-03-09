@@ -214,7 +214,7 @@ async function generateFiles(targetDir, detectedStacks, agents, ciSelection) {
     try {
       const mod = await import(genPath);
       if (agent === 'copilot' && mod.generateCopilotConfig) {
-        const out = mod.generateCopilotConfig(targetDir, CORE_DIR, agentDocsDest);
+        const out = mod.generateCopilotConfig(targetDir, CORE_DIR, agentDocsDest, detectedStacks);
         created.push(relative(targetDir, out));
         ok(`Copilot: ${relative(targetDir, out)}`);
       } else if (agent === 'claude' && mod.generateClaudeConfig) {
@@ -222,7 +222,7 @@ async function generateFiles(targetDir, detectedStacks, agents, ciSelection) {
         created.push(relative(targetDir, r.claudeMdPath), relative(targetDir, r.settingsPath));
         ok(`Claude: CLAUDE.md + .claude/settings.json`);
       } else if (agent === 'cursor' && mod.generateCursorConfig) {
-        const out = mod.generateCursorConfig(targetDir, CORE_DIR, agentDocsDest);
+        const out = mod.generateCursorConfig(targetDir, CORE_DIR, agentDocsDest, detectedStacks);
         created.push(relative(targetDir, out));
         ok(`Cursor: ${relative(targetDir, out)}`);
       }
