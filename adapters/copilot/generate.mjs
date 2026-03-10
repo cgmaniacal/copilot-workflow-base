@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { buildSlimContent } from '../shared/build-slim-content.mjs';
+import { buildBranchAccessRules } from '../shared/build-branching-content.mjs';
 
 /**
  * Generates .github/copilot-instructions.md — a slim reference doc.
@@ -49,5 +50,212 @@ export function generateCopilotConfig(targetDir, coreDir, agentDocsDir, overlayC
   const outputPath = join(githubDir, 'copilot-instructions.md');
   writeFileSync(outputPath, output, 'utf8');
 
-  return [outputPath];
+  // Generate tiered instruction files
+  const paths = [outputPath];
+  paths.push(generateClaudeInstructions(targetDir, overlayConfig));
+  paths.push(generateChatGPTInstructions(targetDir));
+  paths.push(generateBranchingInstructions(targetDir, overlayConfig));
+  paths.push(generateCIPipelineInstructions(targetDir, overlayConfig));
+
+  return paths;
+}
+
+/**
+ * Generates .github/instructions/claude.instructions.md
+ *
+ * @param {string} targetDir
+ * @param {Object} overlayConfig
+ * @returns {string} Generated file path
+ */
+function generateClaudeInstructions(targetDir, overlayConfig) {
+  const lines = [];
+
+  lines.push('---');
+  lines.push('applyTo: "**"');
+  lines.push('---');
+  lines.push('');
+  lines.push('# Claude-Specific Instructions');
+  lines.push('');
+  lines.push('## Strengths to Leverage');
+  lines.push('');
+  lines.push('- **Precise instruction following** — follow task specs and agent_docs exactly as written');
+  lines.push('- **Conciseness** — prefer short, direct responses; avoid unnecessary prose');
+  lines.push('- **Large context** — read all relevant files before acting; hold full context across a task');
+  lines.push('');
+  lines.push('## Tool Use Patterns');
+  lines.push('');
+  lines.push('- Always read a file before editing it');
+  lines.push('- Use dedicated search tools (Grep, Glob) rather than Bash `find`/`grep` commands');
+  lines.push('- Prefer editing existing files over creating new ones');
+  lines.push('');
+  lines.push('## Model Routing');
+  lines.push('');
+  lines.push('For Claude Code CLI, route tasks by complexity:');
+  lines.push('');
+  lines.push('| Model | Task Types |');
+  lines.push('|-------|-----------|');
+  lines.push('| `opus` | Architecture decisions, complex refactors, multi-file features |');
+  lines.push('| `sonnet` | Standard feature work, bug fixes, code review |');
+  lines.push('| `haiku` | Simple edits, quick lookups, formatting fixes |');
+
+  if (overlayConfig.superpowersInstalled) {
+    lines.push('');
+    lines.push('## Superpowers Skills');
+    lines.push('');
+    lines.push('| Skill | When to Use |');
+    lines.push('|-------|------------|');
+    lines.push('| `brainstorming` | Exploring design options and trade-offs |');
+    lines.push('| `writing-plans` | Creating implementation plans before coding |');
+    lines.push('| `subagent-driven-development` | Parallelising large tasks across subagents |');
+    lines.push('| `finishing-a-development-branch` | Final review, cleanup, and PR preparation |');
+  }
+
+  lines.push('');
+
+  const dir = join(targetDir, '.github', 'instructions');
+  mkdirSync(dir, { recursive: true });
+
+  const filePath = join(dir, 'claude.instructions.md');
+  writeFileSync(filePath, lines.join('\n'), 'utf8');
+  return filePath;
+}
+
+/**
+ * Generates .github/instructions/chatgpt.instructions.md
+ *
+ * @param {string} targetDir
+ * @returns {string} Generated file path
+ */
+function generateChatGPTInstructions(targetDir) {
+  const lines = [];
+
+  lines.push('---');
+  lines.push('applyTo: "**"');
+  lines.push('---');
+  lines.push('');
+  lines.push('# ChatGPT-Specific Instructions');
+  lines.push('');
+  lines.push('## CRITICAL WORKFLOW RULES');
+  lines.push('');
+  lines.push('1. **Read before write** — always read the target file in full before making any edits');
+  lines.push('2. **Plan before code** — outline your approach before writing implementation code');
+  lines.push('3. **Test before claim** — do not claim something works unless you have verified it runs');
+  lines.push('4. **Follow existing patterns** — match the style, structure, and conventions already in the codebase');
+  lines.push('');
+  lines.push('## Things You Must NOT Do');
+  lines.push('');
+  lines.push('- Do not invent file paths or module names that do not exist');
+  lines.push('- Do not rewrite files wholesale when a targeted edit will do');
+  lines.push('- Do not skip reading `agent_docs/` before starting a task');
+  lines.push('- Do not assume a function or export exists without checking first');
+  lines.push('- Do not add dependencies not already present in the project');
+  lines.push('- Do not omit error handling that exists in surrounding code');
+  lines.push('');
+  lines.push('## Step-by-Step Process');
+  lines.push('');
+  lines.push('Follow this exact sequence for every task:');
+  lines.push('');
+  lines.push('1. Read `agent_docs/` files relevant to the task');
+  lines.push('2. Read the specific files you will change');
+  lines.push('3. Search for callers / dependents of anything you plan to modify');
+  lines.push('4. Make the change');
+  lines.push('5. Verify the change compiles / runs if applicable');
+  lines.push('6. Confirm no other files need updating');
+  lines.push('');
+  lines.push('## Commit Format');
+  lines.push('');
+  lines.push('Use Conventional Commits: `type(scope): description`');
+  lines.push('');
+  lines.push('Example: `feat(auth): add OAuth2 token refresh`');
+  lines.push('');
+
+  const dir = join(targetDir, '.github', 'instructions');
+  mkdirSync(dir, { recursive: true });
+
+  const filePath = join(dir, 'chatgpt.instructions.md');
+  writeFileSync(filePath, lines.join('\n'), 'utf8');
+  return filePath;
+}
+
+/**
+ * Generates .github/instructions/branching.instructions.md
+ *
+ * @param {string} targetDir
+ * @param {Object} overlayConfig
+ * @returns {string} Generated file path
+ */
+function generateBranchingInstructions(targetDir, overlayConfig) {
+  const lines = [];
+
+  lines.push('---');
+  lines.push('applyTo: "**"');
+  lines.push('description: "Branch workflow and protection rules"');
+  lines.push('---');
+  lines.push('');
+  lines.push('# Branching Workflow');
+  lines.push('');
+  lines.push(buildBranchAccessRules(overlayConfig.branchConfig));
+
+  const dir = join(targetDir, '.github', 'instructions');
+  mkdirSync(dir, { recursive: true });
+
+  const filePath = join(dir, 'branching.instructions.md');
+  writeFileSync(filePath, lines.join('\n'), 'utf8');
+  return filePath;
+}
+
+/**
+ * Generates .github/instructions/ci-pipeline.instructions.md
+ *
+ * @param {string} targetDir
+ * @param {Object} overlayConfig
+ * @returns {string} Generated file path
+ */
+function generateCIPipelineInstructions(targetDir, overlayConfig) {
+  const lines = [];
+
+  lines.push('---');
+  lines.push('applyTo: "**/.github/**,**/azure-pipelines*,**/Jenkinsfile,**/.gitlab-ci*,**/Dockerfile,**/docker-compose*"');
+  lines.push('description: "CI/CD pipeline interaction rules"');
+  lines.push('---');
+  lines.push('');
+  lines.push('# CI/CD Pipeline Rules');
+  lines.push('');
+
+  if (overlayConfig.ciProvider) {
+    lines.push(`**Detected pipeline:** ${overlayConfig.ciProvider}`);
+    lines.push('');
+  }
+
+  lines.push('## What You CAN Do');
+  lines.push('');
+  lines.push('- Create commits and push to allowed branches');
+  lines.push('- Push feature branches and open pull requests');
+  lines.push('- Check CI status and read pipeline output');
+  lines.push('- Create PRs that trigger CI runs');
+  lines.push('');
+  lines.push('## What You Must NEVER Do');
+  lines.push('');
+  lines.push('- Trigger or initiate deployments directly');
+  lines.push('- Modify pipeline configuration files (`.github/workflows/`, `azure-pipelines.yml`, `Jenkinsfile`, etc.) unless explicitly instructed');
+  lines.push('- Push directly to protected branches (use a PR instead)');
+  lines.push('- Bypass required CI checks to merge a PR');
+  lines.push('');
+  lines.push('## Commit Messages and CI');
+  lines.push('');
+  lines.push('Use Conventional Commits to ensure CI and changelog tooling parse commits correctly:');
+  lines.push('');
+  lines.push('```');
+  lines.push('type(scope): description');
+  lines.push('```');
+  lines.push('');
+  lines.push('Include `[skip ci]` in the commit message only when explicitly asked to skip CI for a commit.');
+  lines.push('');
+
+  const dir = join(targetDir, '.github', 'instructions');
+  mkdirSync(dir, { recursive: true });
+
+  const filePath = join(dir, 'ci-pipeline.instructions.md');
+  writeFileSync(filePath, lines.join('\n'), 'utf8');
+  return filePath;
 }
