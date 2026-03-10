@@ -113,25 +113,31 @@ Before starting complex tasks, check the project's guardrails file (typically `.
 
 ### Branch Structure
 
-| Branch | Purpose | Rules |
-|--------|---------|-------|
-| `main` | Production | Auto-deploys on push. Never push directly. |
-| `develop` | Integration and testing | All feature branches merge here first. Never push directly. |
-| `feature/<short-description>` | One per feature | Always branch from `develop`, not `main`. |
+The branching strategy is configured during onboarding and documented in `agent_docs/branching_workflow.md`. The configuration defines:
+
+- Which branches exist and what environments they map to
+- Which branches agents can push to and create PRs for
+- Which branches are protected (agents must NEVER interact with)
+- The flow direction (e.g., `feature/* → develop → pre-release → release`)
+
+**Always consult `agent_docs/branching_workflow.md` for this project's specific branch rules.**
 
 ### Flow
 
-```
-feature/* → PR to develop → local testing → PR from develop to main → auto-deploy + changelog
-```
+Branch flow varies by project. Common patterns include:
+
+- **Two-branch:** `feature/*` → PR to `develop` → PR to `main`
+- **Multi-environment:** `feature/*` → `develop` (dev) → `pre-release` (test) → `release` (prod)
+
+The specific flow for this project is defined during onboarding and documented in `agent_docs/branching_workflow.md` and the generated instruction files.
 
 ### Rules
 
-- Always branch `feature/*` from `develop`.
-- Feature branches PR into `develop`. Only `develop` PRs into `main`.
-- Never push directly to `main` or `develop`. All changes go through pull requests.
+- Always branch from the configured default target branch (typically `develop`).
+- Feature branches PR into the default target. Never push directly to protected branches.
+- All changes to protected branches go through pull requests.
 - Commits happen only during Phase 3 (Implement) and Phase 4 (Validate).
-- Research, plan, and decision docs are committed with the first implementation commit — not as separate commits to `main`.
+- Research, plan, and decision docs are committed with the first implementation commit.
 
 ### Commit Format
 

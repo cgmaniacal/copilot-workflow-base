@@ -75,6 +75,10 @@ The `settings.json` `permissions` block is built from:
 - `git push --force`, `git push -f`, `git reset --hard`
 - Reading `.env` and `.env.*` files
 
+**Dynamic branch protection (from `overlayConfig.branchConfig`):**
+- For each protected branch, deny rules are generated: `Bash(git push*<branch>*)`, `Bash(git merge*<branch>*)`, `Bash(git checkout -b <branch>*)`
+- Example: if `staging` and `production` are protected, 6 deny rules are added
+
 **Stack-specific additions:**
 
 | Stack | Extra allow | Extra deny |
@@ -83,6 +87,10 @@ The `settings.json` `permissions` block is built from:
 | `wordpress` | `composer`, `wp-env`, `npm run`, `npm install` | `Read(wp-config.php)` |
 | `dotnet` | `dotnet build/test/run/restore` | `Read(appsettings.*.json)` |
 | `python` | `pytest`, `python`, `pip`, `poetry`, `ruff` | — |
+
+## Superpowers integration
+
+When `overlayConfig.superpowersInstalled` is true, the generated `CLAUDE.md` includes a Superpowers Integration section with a table mapping the 4-phase workflow to superpowers skills (brainstorming, writing-plans, subagent-driven-development, finishing-a-development-branch).
 
 ## When to regenerate
 
@@ -104,11 +112,11 @@ Or call the adapter directly:
 ```javascript
 import { generateClaudeConfig } from './adapters/claude/generate.mjs';
 
-generateClaudeConfig(
+const result = generateClaudeConfig(
   '/path/to/target-project',            // project being onboarded
   '/path/to/overlay/core',              // overlay's core/ directory
   '/path/to/target-project/agent_docs', // populated agent_docs in target project
-  ['react-typescript']                  // detected stacks
+  overlayConfig                         // { detectedStacks, branchConfig, ciProvider, superpowersInstalled }
 );
 ```
 
@@ -118,7 +126,8 @@ The function returns:
 {
   claudeMdPath: '/path/to/target-project/CLAUDE.md',
   settingsPath: '/path/to/target-project/.claude/settings.json',
-  copiedFiles: ['hooks/session_start_recall.sh', ...] // list of files written to .claude/
+  copiedFiles: ['hooks/session_start_recall.sh', ...],
+  paths: [claudeMdPath, settingsPath]  // for standardized array-based handling
 }
 ```
 

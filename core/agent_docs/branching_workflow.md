@@ -1,59 +1,39 @@
 # Branching Workflow
 
+<!-- ONBOARDING: This file is dynamically generated from the branching configuration
+     collected during onboarding. If you see {{TODO}} placeholders below, the dynamic
+     generation was skipped and the analysis prompt should populate these fields. -->
+
 ## Branch Structure
 
-| Branch | Purpose | Deploys? | Push directly? |
-|--------|---------|----------|----------------|
-| `main` | Production | Yes (auto-deploy) | Never |
-| `develop` | Integration/testing | No | Never |
-| `feature/*` | Individual features | No | Yes (your branch) |
+<!-- ONBOARDING: detect branch structure from git branch -r, CI config, and user input -->
+
+| Branch | Purpose | Environment | Push directly? |
+|--------|---------|-------------|----------------|
+| {{TODO: branch table populated during onboarding}} | | | |
 
 ## Flow
 
-```
-feature/my-feature ──PR──▶ develop ──PR──▶ main ──▶ auto-deploy + changelog
-```
+<!-- ONBOARDING: document the promotion flow between branches -->
+
+{{TODO: flow diagram populated during onboarding}}
 
 ### Step-by-Step
 
-1. **Start a feature:** Branch from `develop`, not `main`.
-
-2. **Work on the feature:**
-   - Commit using Conventional Commits: `feat(scope): description`
-   - Push to your feature branch
-
-3. **Open PR to `develop`:**
-   - CI runs lint, test, build on PRs to `develop`
-   - Review, approve, merge
-
-4. **Test on `develop`:**
-   - Multiple features can be merged and tested together
-   - No auto-deploy — `develop` is for integration testing only
-
-5. **Promote to production:**
-   - Open PR from `develop` to `main`
-   - After merge: auto-deploy triggers, changelog generates, version tag created
+{{TODO: step-by-step workflow populated during onboarding}}
 
 ## Rules
 
-- **Never push directly** to `main` or `develop` — always use PRs
-- **Always branch from `develop`**, not `main`
+- **Never push directly** to protected branches — always use PRs
+- **Always branch from the default target branch**
 - **One PR per feature** — don't bundle unrelated changes
 - **Conventional Commits required** — the changelog parses commit messages
-- **Keep `develop` stable** — don't merge broken features
 
 ## Changelog Process
 
 <!-- ONBOARDING: detect changelog tooling — look for scripts/, package.json scripts, or CI steps that generate changelogs -->
 
-When `develop` merges into `main`:
-
-1. CI deploys to production
-2. Changelog script runs automatically — `{{TODO: detected during onboarding}}`
-3. Parses all commits since the last version tag
-4. Groups by type: Features, Fixes, Improvements
-5. Updates `CHANGELOG.md` and any frontend-facing changelog artifact — `{{TODO: detected during onboarding}}`
-6. Commits the changelog and creates a date-based tag (e.g., `v2026-02-28`)
+{{TODO: detected during onboarding}}
 
 ### Commit types and changelog sections
 
@@ -69,6 +49,6 @@ When `develop` merges into `main`:
 
 For urgent production fixes:
 
-1. Branch from `main`: `git checkout -b hotfix/fix-description main`
-2. Fix, commit, PR to `main`
-3. After merge to `main`: cherry-pick or merge the fix into `develop`
+1. Branch from the production branch
+2. Fix, commit, PR to the production branch
+3. After merge: cherry-pick or merge the fix back to the development branch

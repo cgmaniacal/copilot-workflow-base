@@ -1,5 +1,6 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { basename } from 'node:path';
+import { buildBranchAccessRules } from './build-branching-content.mjs';
 
 /**
  * Build the shared slim instruction content used by all adapters.
@@ -8,7 +9,7 @@ import { basename } from 'node:path';
  * @param {string} agentDocsDir - Path to the populated agent_docs/ in the target
  * @returns {string} Markdown content for the shared sections
  */
-export function buildSlimContent(coreDir, agentDocsDir) {
+export function buildSlimContent(coreDir, agentDocsDir, overlayConfig = {}) {
   const sections = [];
 
   // ── Core Principles ──
@@ -33,16 +34,10 @@ export function buildSlimContent(coreDir, agentDocsDir) {
   // ── Git Conventions ──
   sections.push('---');
   sections.push('');
-  sections.push('## Git Conventions');
-  sections.push('');
-  sections.push('| Branch | Purpose |');
-  sections.push('|--------|---------|');
-  sections.push('| `main` | Production. Auto-deploys. Never push directly. |');
-  sections.push('| `develop` | Integration. All feature branches merge here first. |');
-  sections.push('| `feature/<short-description>` | One per feature. Always branch from `develop`. |');
-  sections.push('');
-  sections.push('**Flow:** `feature/*` → PR to `develop` → testing → PR to `main` → auto-deploy');
-  sections.push('');
+
+  const { branchConfig } = overlayConfig;
+  sections.push(buildBranchAccessRules(branchConfig));
+
   sections.push('**Commits:** [Conventional Commits](https://www.conventionalcommits.org/) — `type(scope): description`');
   sections.push('Types: `feat`, `fix`, `chore`, `refactor`, `test`, `docs`. Scope = app or package name.');
   sections.push('');
