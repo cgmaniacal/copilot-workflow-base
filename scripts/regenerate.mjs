@@ -88,6 +88,22 @@ async function main() {
     regenerated.push(relative(targetDir, p));
   }
 
+  // CI templates (regenerate from branchConfig)
+  if (overlayConfig.ciProvider) {
+    const { generateCITemplate } = await import('../adapters/shared/build-ci-templates.mjs');
+    const providers = Array.isArray(overlayConfig.ciProvider)
+      ? overlayConfig.ciProvider
+      : [overlayConfig.ciProvider];
+    for (const ci of providers) {
+      try {
+        const paths = generateCITemplate(ci, overlayConfig, targetDir);
+        for (const p of paths) regenerated.push(relative(targetDir, p));
+      } catch (e) {
+        console.log(`  [WARN] CI template generation failed for ${ci}: ${e.message}`);
+      }
+    }
+  }
+
   if (regenerated.length === 0) {
     console.log('  No instruction files found to regenerate.');
     console.log('  (Looking for CLAUDE.md, .github/copilot-instructions.md, AGENTS.md, or .cursorrules)\n');

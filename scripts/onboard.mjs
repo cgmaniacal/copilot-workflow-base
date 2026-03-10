@@ -13,6 +13,7 @@ import { join, dirname, resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import { buildBranchingWorkflow } from '../adapters/shared/build-branching-content.mjs';
+import { generateCITemplate } from '../adapters/shared/build-ci-templates.mjs';
 import { generateReadmeAgentic } from '../adapters/shared/build-readme-agentic.mjs';
 
 const OVERLAY_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -348,21 +349,13 @@ async function generateFiles(targetDir, overlayConfig, agents, ciSelection) {
     } catch (e) { warn(`${agent} adapter failed: ${e.message}`); }
   }
 
-  // f. CI templates
-  const ciTmplDir = join(OVERLAY_ROOT, 'scripts', 'ci-templates');
+  // f. CI templates (dynamically generated from branchConfig)
   for (const ci of ciSelection) {
-    const srcDir = join(ciTmplDir, ci);
-    if (!existsSync(srcDir)) continue;
-    if (ci === 'github-actions') {
-      const destDir = join(targetDir, '.github', 'workflows');
-      ensureDir(destDir);
-      for (const f of readdirSync(srcDir)) {
-        if (copyIfMissing(join(srcDir, f), join(destDir, f))) created.push(`.github/workflows/${f}`);
-      }
-    } else if (ci === 'azure-devops') {
-      const dest = join(targetDir, 'azure-pipelines.yml');
-      if (copyIfMissing(join(srcDir, 'azure-pipelines.yml'), dest)) created.push('azure-pipelines.yml');
-    }
+    try {
+      const paths = generateCITemplate(ci, overlayConfig, targetDir);
+      for (const p of paths) created.push(relative(targetDir, p));
+      ok(`CI: ${ci} pipeline generated`);
+    } catch (e) { warn(`CI template generation failed for ${ci}: ${e.message}`); }
   }
 
   return { created, agentDocsDest };
